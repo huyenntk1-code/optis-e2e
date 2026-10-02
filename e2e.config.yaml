@@ -1,0 +1,62 @@
+# =============================================================================
+# Config E2E cho app OPTIS Product Options — mọi giá trị theo môi trường nằm trong
+# .env, file này chỉ là template đọc qua ${VAR}. KHÔNG sửa file này khi đổi
+# store/môi trường — chỉ sửa .env.
+#
+# Mọi giá trị baseUrl/route/tên field dưới đây đã ĐỐI CHIẾU với source code thật
+# (PO/api, PO/cms, PO/tae) tại thời điểm viết — không phải suy đoán. Chi tiết lý do
+# từng dòng xem .claude/skills/_shared/project-notes.md.
+# =============================================================================
+
+requirements:
+  tracker: jira
+  jiraProjectKey: ${JIRA_PROJECT_KEY:-OPOS}
+  docs: []
+  diffRepos: [${DIFF_REPOS:-}]
+  baseBranch: ${BASE_BRANCH:-master}
+
+targets:
+  # ---- Backend API (NestJS) ----
+  # ⚠️ baseUrl KHÔNG kèm /api/v1 — vì health-check endpoint (/life-check) được main.ts
+  # loại trừ khỏi global prefix, sống ở ROOT domain. Mọi route nghiệp vụ thật (option-sets...)
+  # phải tự viết đủ "/api/v1/..." trong path của từng case — xem ví dụ cases/OPOS-DEMO-01/cases.yaml.
+  api:
+    kind: api
+    baseUrl: ${API_BASE_URL}
+    auth:
+      type: shopify-session-jwt
+      envFile: ${API_ENV_FILE:-}
+      apiKeyVar: SHOPIFY_API_KEY
+      apiSecretVar: SHOPIFY_API_SECRET     # đúng tên biến thật trong PO/api/.env.example (không có hậu tố _KEY)
+      shopDomain: ${STORE}.myshopify.com
+      # KHÔNG set headerPrefix — để mặc định "Bearer " vì ShopifyEmbeddedGuard.extractToken()
+      # (PO/api/src/core/guards/shopify-embedded.guard.ts) bắt buộc đúng "Bearer <token>".
+
+  # ---- CMS = app nhúng trong Shopify Admin qua iframe "app-iframe" (đã xác nhận live) ----
+  cms:
+    kind: browser
+    baseUrl: https://admin.shopify.com/store/${STORE}/apps/${APP_HANDLE}
+    appIframeSrc: ${APP_DOMAIN}     # host thật của iframe — lấy từ CMS_URL trong PO/api/.env (dev-<name>-product-option-cms...)
+    auth:
+      type: chrome-profile
+      profileDir: .auth/cms-profile
+      loginUrl: https://admin.shopify.com/store/${STORE}
+
+  # ---- Storefront: KHÔNG phải iframe (đã xác nhận zero "iframe" trong toàn bộ PO/tae/src) ----
+  # Widget option-set render thẳng vào DOM theme qua window.BSS_PO — spec KHÔNG cần frameLocator ở đây.
+  storefront:
+    kind: browser
+    baseUrl: https://${STORE}.myshopify.com
+    auth:
+      type: chrome-profile
+      profileDir: .auth/storefront-profile
+      loginUrl: https://${STORE}.myshopify.com/account/login
+
+  # ---- Slot persona khách hàng thứ 2 (dùng cho case Targeting theo Customer/Guest, xem AC-TARGET-009→011) ----
+  storefront-2:
+    kind: browser
+    baseUrl: https://${STORE}.myshopify.com
+    auth:
+      type: chrome-profile
+      profileDir: ${PERSONA2_PROFILE:-.auth/persona2-profile}
+      loginUrl: https://${STORE}.myshopify.com/account/login

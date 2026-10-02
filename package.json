@@ -1,0 +1,32 @@
+{
+  "name": "optis-e2e",
+  "version": "0.1.0",
+  "description": "E2E test harness cho OPTIS Product Options (api + cms + tae/storefront) — engine mượn từ e2e-main, Page Object lấy sườn từ tests-pom-optimized, locator lấy từ source code thật của PO/api, PO/cms, PO/tae.",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "e2e:doctor": "tsx src/doctor.ts",
+    "e2e:all": "tsx src/all.ts",
+    "e2e:retry": "tsx src/retry.ts",
+    "e2e:probe": "tsx src/probe.ts",
+    "e2e:run": "tsx src/run.ts",
+    "e2e:coverage:validate": "tsx src/coverage-validator.ts",
+    "e2e:report:build": "tsx src/build-report.ts",
+    "e2e:browser": "playwright test",
+    "e2e:login": "tsx src/login.ts"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
+  }
+}
